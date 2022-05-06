@@ -1,24 +1,54 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from "react";
+import { Button, TextField } from "@mui/material";
+import LoadingMask from "./components/LoadingMask";
+import Book from "./components/Book"
 
 function App() {
+
+  const [loading, setLoading] = useState(false)
+  const [books, setBooks] = useState([])
+  const [input, setInput] = useState("")
+  const [sort, setSort] = useState("desc")
+
+  async function fetchBooks() {
+    const response = await fetch("https://www.asd.com/v1/api/books")
+    const responseJSON = await response.json()
+    console.log(responseJSON);
+
+    setBooks(responseJSON)
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    setLoading(true)
+    fetchBooks()
+  }, [])
+
+ function sortBooks() {
+   setBooks([...books.sort((a, b) => sort === "desc" ? b.year - a.year : a.year - b.year)])
+   setSort(sort === "desc" ? "asc" : "desc")
+ }
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+           {
+                loading ? 
+                <LoadingMask/> :
+                <>
+                <Button variant="contained" onClick={sortBooks}>sort</Button>
+                <TextField id="outlined-basic" label="Search" variant="outlined" placeholder="Search..." value={input} onChange={
+                    ({target}) =>{
+                        setInput(target.value);
+                    }
+                }/>
+                
+                {books.map(({title, author, year}) => 
+                    title.toLowerCase().includes(input.toLowerCase()) &&
+                    <Book key={title} title={title} year={year} author={author} />
+                )}
+                </>
+            }
+        </div>
   );
 }
 
